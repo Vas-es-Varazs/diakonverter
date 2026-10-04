@@ -8,7 +8,7 @@ A Canva saját PowerPoint exportja gyakran elrontja a betűtípusokat és az elr
 
 ## Használat
 
-1. Canvában: **Share → Download → File type: PDF Standard → Download**.
+1. Canvában: **Share → Download → File type: PDF Digital → Download**.
 2. Nyisd meg ezt az oldalt: **https://vas-es-varazs.github.io/diakonverter/**
 3. Húzd a letöltött PDF-et az oldalon lévő mezőbe.
 4. Pár másodperc múlva letöltődik a kész fájl. A neve ugyanaz lesz, mint az eredetié, a végén „converted” szóval.
@@ -32,7 +32,7 @@ Canva's own PowerPoint export often breaks fonts and layout. This tool puts each
 
 ## How to use it
 
-1. In Canva: **Share → Download → File type: PDF Standard → Download**.
+1. In Canva: **Share → Download → File type: PDF Digital → Download**.
 2. Open this page: **https://vas-es-varazs.github.io/diakonverter/**
 3. Drop the downloaded PDF onto the box on the page.
 4. After a few seconds the finished file downloads. It has the same name as the original, with "converted" added to the end.
