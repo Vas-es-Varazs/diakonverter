@@ -8,7 +8,7 @@ A Canva saját PowerPoint exportja gyakran elrontja a betűtípusokat és az elr
 
 ## Használat
 
-1. Canvában: **Megosztás → Letöltés → Fájltípus: PDF (szabványos) → Letöltés**.
+1. Canvában: **Share → Download → File type: PDF Standard → Download**.
 2. Nyisd meg ezt az oldalt: **https://vas-es-varazs.github.io/diakonverter/**
 3. Húzd a letöltött PDF-et az oldalon lévő mezőbe.
 4. Pár másodperc múlva letöltődik a kész fájl. A neve ugyanaz lesz, mint az eredetié, a végén „converted” szóval.
@@ -46,7 +46,7 @@ Your file is never uploaded anywhere: the conversion happens entirely in your br
 
 ## For developers
 
-The page is static HTML ([index.html](index.html)) served by GitHub Pages. It renders PDF pages with [pdf.js](https://mozilla.github.io/pdf.js/) at 3840 px wide (JPEG, quality 95) and builds the .pptx with [PptxGenJS](https://gitbrent.github.io/PptxGenJS/). Both libraries are vendored in [vendor/](vendor/) so the page has no external dependencies.
+The page is static HTML ([index.html](index.html)) served by GitHub Pages. It renders PDF pages with [pdf.js](https://mozilla.github.io/pdf.js/) at 3840 px wide (JPEG, quality 95) and builds the .pptx with [PptxGenJS](https://gitbrent.github.io/PptxGenJS/). Both libraries are vendored in [vendor/](vendor/), so conversion works without any other site; only the fonts load from Google Fonts. The page has a `noindex` tag to keep it out of search results.
 
 ZIP images are used as-is, in the order they are stored in the ZIP. Canva names titled pages by their title instead of their number, so sorting by filename would scramble the order.
 
