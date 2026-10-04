@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canva → PowerPoint</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --card: #ffffff;
+    --text: #1d1c1a;
+    --muted: #6b6862;
+    --border: #d9d6cf;
+    --accent: #4b3fb5;
+    --accent-text: #ffffff;
+    --drop: #efedff;
+    --error: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17161a;
+      --card: #222127;
+      --text: #ecebe8;
+      --muted: #a09da6;
+      --border: #3a3842;
+      --accent: #9d93ff;
+      --accent-text: #17161a;
+      --drop: #2b2840;
+      --error: #ff8a80;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 48px 16px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  h1 { font-size: 28px; margin: 0 0 8px; }
+  .lang { background: none; border: 1px solid var(--border); color: var(--muted);
+          border-radius: 6px; padding: 4px 10px; font: inherit; font-size: 14px; cursor: pointer; }
+  p { margin: 0 0 16px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  #drop {
+    display: block;
+    margin: 24px 0;
+    padding: 48px 24px;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    background: var(--card);
+    text-align: center;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  #drop.over { background: var(--drop); border-color: var(--accent); }
+  #drop.busy { cursor: progress; opacity: .7; }
+  #drop strong { display: block; font-size: 18px; margin-bottom: 4px; }
+  #file { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  #status { min-height: 24px; }
+  #status.error { color: var(--error); }
+  progress { width: 100%; height: 8px; accent-color: var(--accent); }
+  ol { padding-left: 20px; margin: 0 0 16px; }
+  li { margin-bottom: 4px; }
+  h2 { font-size: 18px; margin: 32px 0 8px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 data-t="title"></h1>
+    <button class="lang" id="lang" type="button"></button>
+  </header>
+  <p data-t="intro"></p>
+
+  <label id="drop">
+    <input id="file" type="file" accept=".pdf,.zip,application/pdf,application/zip">
+    <strong data-t="drop"></strong>
+    <span class="muted" data-t="dropHint"></span>
+  </label>
+
+  <p id="status" role="status" aria-live="polite"></p>
+  <progress id="progress" hidden></progress>
+
+  <h2 data-t="howTitle"></h2>
+  <ol>
+    <li data-t="how1"></li>
+    <li data-t="how2"></li>
+    <li data-t="how3"></li>
+  </ol>
+  <p class="muted" data-t="privacy"></p>
+</main>
+
+<script src="vendor/pptxgen.bundle.js"></script>
+<script type="module">
+import * as pdfjsLib from "./vendor/pdfjs/pdf.min.mjs";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "./vendor/pdfjs/pdf.worker.min.mjs";
+
+const TEXT = {
+  hu: {
+    title: "Canva → PowerPoint",
+    intro: "Canva prezentációból PowerPoint (.pptx) fájl, pontosan úgy, ahogy Canvában kinéz. Minden dia egy kép lesz, így a betűtípusok és az elrendezés nem csúsznak el.",
+    drop: "Húzd ide a fájlt, vagy kattints a kiválasztáshoz",
+    dropHint: "Canva PDF (ajánlott) vagy PNG/JPG képeket tartalmazó ZIP",
+    howTitle: "Hogyan használd?",
+    how1: "Canvában: Megosztás → Letöltés → Fájltípus: PDF (szabványos) → Letöltés.",
+    how2: "Húzd a letöltött PDF-et a fenti mezőbe.",
+    how3: "Pár másodperc múlva letöltődik a kész .pptx fájl („… converted.pptx”).",
+    privacy: "A fájlod nem kerül feltöltésre sehova: az átalakítás teljesen a böngésződben történik.",
+    reading: "Fájl beolvasása…",
+    slide: (n, total) => `${n}. dia / ${total}…`,
+    saving: "PowerPoint fájl mentése…",
+    done: (n, name) => `Kész! ${n} dia → ${name}`,
+    wrongType: "Ez nem PDF vagy ZIP fájl. Canvából PDF-et tölts le.",
+    empty: "Nem találtam oldalt vagy képet a fájlban.",
+    failed: "Hiba történt az átalakításkor: ",
+    other: "English",
+  },
+  en: {
+    title: "Canva → PowerPoint",
+    intro: "Turn a Canva presentation into a PowerPoint (.pptx) file that looks exactly like it does in Canva. Each slide becomes an image, so fonts and layout can't shift.",
+    drop: "Drop your file here, or click to choose one",
+    dropHint: "Canva PDF (recommended) or a ZIP of PNG/JPG images",
+    howTitle: "How to use it",
+    how1: "In Canva: Share → Download → File type: PDF Standard → Download.",
+    how2: "Drop the downloaded PDF onto the box above.",
+    how3: "After a few seconds the finished .pptx downloads (“… converted.pptx”).",
+    privacy: "Your file is never uploaded anywhere: the conversion happens entirely in your browser.",
+    reading: "Reading file…",
+    slide: (n, total) => `Slide ${n} of ${total}…`,
+    saving: "Saving PowerPoint file…",
+    done: (n, name) => `Done! ${n} slides → ${name}`,
+    wrongType: "That isn't a PDF or ZIP file. Download a PDF from Canva.",
+    empty: "No pages or images found in the file.",
+    failed: "Something went wrong during conversion: ",
+    other: "Magyar",
+  },
+};
+
+const RENDER_WIDTH = 3840;   // pixels; 4K keeps text sharp on any screen
+const JPEG_QUALITY = 0.95;
+const SLIDE_WIDTH = 13.333;  // inches; PowerPoint's standard widescreen width
+const IMAGE_TYPES = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg" };
+
+let lang = (() => {
+  try { return localStorage.getItem("lang") || "hu"; } catch { return "hu"; }
+})();
+const t = (key, ...args) => {
+  const value = TEXT[lang][key];
+  return typeof value === "function" ? value(...args) : value;
+};
+
+const drop = document.getElementById("drop");
+const fileInput = document.getElementById("file");
+const statusEl = document.getElementById("status");
+const progress = document.getElementById("progress");
+let busy = false;
+
+function applyLanguage() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+  document.getElementById("lang").textContent = t("other");
+}
+
+document.getElementById("lang").addEventListener("click", () => {
+  lang = lang === "hu" ? "en" : "hu";
+  try { localStorage.setItem("lang", lang); } catch {}
+  applyLanguage();
+});
+
+function setStatus(message, { error = false, done = 0, total = 0 } = {}) {
+  statusEl.textContent = message;
+  statusEl.classList.toggle("error", error);
+  progress.hidden = !total;
+  progress.max = total || 1;
+  progress.value = done;
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function imageSize(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error("unreadable image"));
+    img.src = dataUrl;
+  });
+}
+
+// Each source yields { total } first, then one { dataUrl, width, height } per page.
+async function* pagesFromPdf(file) {
+  const loadingTask = pdfjsLib.getDocument({
+    data: await file.arrayBuffer(),
+    cMapUrl: "./vendor/pdfjs/cmaps/",
+    cMapPacked: true,
+    standardFontDataUrl: "./vendor/pdfjs/standard_fonts/",
+    wasmUrl: "./vendor/pdfjs/wasm/",
+    iccUrl: "./vendor/pdfjs/iccs/",
+  });
+  const pdf = await loadingTask.promise;
+  yield { total: pdf.numPages };
+  for (let n = 1; n <= pdf.numPages; n++) {
+    const page = await pdf.getPage(n);
+    const viewport = page.getViewport({ scale: RENDER_WIDTH / page.getViewport({ scale: 1 }).width });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(viewport.width);
+    canvas.height = Math.round(viewport.height);
+    await page.render({ canvas, viewport }).promise;
+    const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+    yield { dataUrl, width: canvas.width, height: canvas.height };
+    canvas.width = canvas.height = 0;  // free the canvas memory right away
+    page.cleanup();
+  }
+  await loadingTask.destroy();
+}
+
+// Zip entries are used in stored order: Canva names titled pages by their
+// title instead of their number, so sorting by filename would scramble them.
+async function* pagesFromZip(file) {
+  const zip = await JSZip.loadAsync(file);
+  const entries = Object.values(zip.files).filter(entry => {
+    const name = entry.name.split("/").pop();
+    const ext = name.split(".").pop().toLowerCase();
+    return !entry.dir && IMAGE_TYPES[ext] && !name.startsWith(".") && !entry.name.includes("__MACOSX");
+  });
+  yield { total: entries.length };
+  for (const entry of entries) {
+    const ext = entry.name.split(".").pop().toLowerCase();
+    const blob = new Blob([await entry.async("arraybuffer")], { type: IMAGE_TYPES[ext] });
+    const dataUrl = await blobToDataUrl(blob);
+    yield { dataUrl, ...(await imageSize(dataUrl)) };
+  }
+}
+
+async function convert(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (ext !== "pdf" && ext !== "zip") {
+    setStatus(t("wrongType"), { error: true });
+    return;
+  }
+  setStatus(t("reading"));
+
+  const pres = new PptxGenJS();
+  const pages = ext === "pdf" ? pagesFromPdf(file) : pagesFromZip(file);
+  let total = 0;
+  let count = 0;
+  let slideH = 0;
+
+  for await (const page of pages) {
+    if (page.total !== undefined) {
+      total = page.total;
+      continue;
+    }
+    if (count === 0) {
+      // The slide's aspect ratio matches the first page.
+      slideH = SLIDE_WIDTH * page.height / page.width;
+      pres.defineLayout({ name: "CANVA", width: SLIDE_WIDTH, height: slideH });
+      pres.layout = "CANVA";
+    }
+    // Scale to fit inside the slide, preserving aspect ratio, then center.
+    const scale = Math.min(SLIDE_WIDTH / page.width, slideH / page.height);
+    const w = page.width * scale;
+    const h = page.height * scale;
+    pres.addSlide().addImage({ data: page.dataUrl, x: (SLIDE_WIDTH - w) / 2, y: (slideH - h) / 2, w, h });
+    count++;
+    setStatus(t("slide", count, total), { done: count, total });
+  }
+
+  if (count === 0) {
+    setStatus(t("empty"), { error: true });
+    return;
+  }
+  setStatus(t("saving"), { done: total, total });
+  const fileName = file.name.replace(/\.[^.]+$/, "") + " converted.pptx";
+  await pres.writeFile({ fileName });
+  setStatus(t("done", count, fileName));
+}
+
+async function handle(file) {
+  if (!file || busy) return;
+  busy = true;
+  drop.classList.add("busy");
+  try {
+    await convert(file);
+  } catch (err) {
+    console.error(err);
+    setStatus(t("failed") + (err.message || err), { error: true });
+  } finally {
+    busy = false;
+    drop.classList.remove("busy");
+    fileInput.value = "";
+  }
+}
+
+fileInput.addEventListener("change", () => handle(fileInput.files[0]));
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => {
+  e.preventDefault();
+  drop.classList.remove("over");
+  handle(e.dataTransfer.files[0]);
+});
+
+applyLanguage();
+</script>
+</body>
+</html>
